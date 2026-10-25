@@ -1,0 +1,9 @@
+{
+  "name": "ci-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.test.js",
+    "build": "echo 'Build complete'"
+  }
+}
