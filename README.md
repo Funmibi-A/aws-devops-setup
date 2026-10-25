@@ -13,8 +13,8 @@ A continuous integration pipeline that turns every push to a CodeCommit reposito
 | # | Task | Done | Evidence |
 |---|---|---|---|
 | 1 | Environment setup: IAM roles for CodeBuild and CodePipeline | Yes | Section 4; `screenshots/01-*.png` |
-| 2 | Create a CodeCommit repository and clone it | Yes | `screenshots/1-Repository-created.png` |
-| 3 | Application code plus `buildspec.yml` | Yes | Section 2; `screenshots/2-local-tests-passed.png` |
+| 2 | Create a CodeCommit repository and clone it | Yes | `screenshots/02-codecommit-repo-files.png` |
+| 3 | Application code plus `buildspec.yml` | Yes | Section 2; `screenshots/03-local-test-pass.png` |
 | 4 | Commit and push to CodeCommit | Yes | Repository link above |
 | 5 | CodeBuild project with runtime, linked to the repo | Yes | Section 3; `screenshots/05-*.png` |
 | 6 | CodePipeline with CodeCommit source and CodeBuild build | Yes | `screenshots/06-pipeline-settings.png` |
@@ -212,29 +212,38 @@ Trust policy: only `codepipeline.amazonaws.com` can assume this role.
 | **Pipeline: Source and Build both Succeeded** | `screenshots/07-pipeline-succeeded.png` |
 | **Build artifact in S3** | `screenshots/07-s3-artifact.png` |
 | S3 pipeline folders (Source and Build outputs) | `screenshots/07-s3-pipeline-folders.png` |
+| CodeCommit repository with the application files | `screenshots/02-codecommit-repo-files.png` |
+| Local test passing before the first push | `screenshots/03-local-test-pass.png` |
+| CLI identity and region | `screenshots/00-caller-identity.png` |
+| IAM roles created and verified | `screenshots/01-*.png` |
+| CodeBuild project configuration | `screenshots/05-codebuild-name-source.png`, `screenshots/05-codebuild-project-created.png` |
 | Standalone build succeeded | `screenshots/05-build-succeeded.png` |
-| Run history and triggers | `screenshots/07-executions-history.png`, `screenshots/07-executions-trigger.png` |
-| Deliberate failure: Build failed | `screenshots/07-pipeline-build-failed.png` |
-| Failure reason in the build log | `screenshots/07-build-log-assertion-error.png` |
-| IAM roles created | `screenshots/01-*.png` |
+| Pipeline settings | `screenshots/06-pipeline-settings.png` |
+| Full run history with triggers | `screenshots/07-executions-history.png` |
+| Deliberate failure: Build stage failed | `screenshots/07-pipeline-build-failed.png` |
+| Failure reason in the build log (`5 !== 6`) | `screenshots/07-build-log-assertion-error.png` |
+| Recovery after the fix: both stages succeeded | `screenshots/07-pipeline-recovered-after-fix.png` |
 
-Artifacts are stored in `s3://ci-demo-artifacts-<ACCOUNT_ID>/ci-demo-pipeline/`: `SourceArti/` holds the zipped source and `BuildArtif/` holds the build output. CodePipeline saves artifacts as ZIP archives under generated names, so the objects have no `.zip` extension.
+Artifacts are stored in `s3://ci-demo-artifacts-<ACCOUNT_ID>/ci-demo-pipeline/`: `SourceArti/` holds the zipped source and `BuildArtif/` holds the build output. CodePipeline saves artifacts as ZIP archives under generated names, so the objects have no `.zip` extension. Each successful run adds one object to `BuildArtif/` and failed runs add none; `07-s3-artifact.png` was taken when the folder held three.
 
 ---
 
 ## 7. Automation test results
 
-Times are UTC+1, 25 Oct 2026.
+Times are UTC+1, 25 Oct 2026. Full history: `screenshots/07-executions-history.png`.
 
 | Time | Trigger | Result | Notes |
 |---|---|---|---|
-| 17:27 | Manual | Failed | Source configuration error (section 8) |
+| 16:48 | Pipeline creation | Failed | First run; Source stage failed within 2 seconds |
+| 16:57 | Manual retry | Failed | Source stage: role missing `codecommit:GetRepository` (section 8) |
+| 17:27 | Manual | Failed | Invalid Source output format (section 8) |
 | 17:50 | Manual | Succeeded | First green run; first artifact |
-| 18:04 | **Automatic (`CloudWatchEvent`)** | Succeeded | Started by a `git push` |
-| after 18:04 | Automatic | Build failed | Test deliberately broken; failed in `pre_build`, **no artifact created** |
-| 18:40 | Automatic | Succeeded | Test fixed; new artifact created |
+| 18:04 | **Automatic (`CloudWatchEvent`)** | Succeeded | Started by a `git push` (commit "Trigger pipeline with a push") |
+| 18:22 | Automatic | Build failed | Commit "Break test deliberately"; failed in `pre_build`, **no artifact created** |
+| 18:39 | Automatic | Succeeded | Commit "Fix test"; new artifact created |
+| 20:47 | Automatic | Succeeded | Commit adding this README |
 
-The bucket holds three build artifacts, one each from the 17:50, 18:04 and 18:40 runs. The failed run produced none.
+The run at 18:22 shows the pipeline acting as a quality gate: Source succeeded, the test failed in the Build stage, and nothing was written to `BuildArtif/`.
 
 ---
 
