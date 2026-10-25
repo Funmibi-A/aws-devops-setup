@@ -4,7 +4,7 @@ A continuous integration pipeline that turns every push to a CodeCommit reposito
 
 - **Region:** `eu-west-1` (Ireland)
 - **Application:** small Node.js module with a unit test
-- **Repository:** `ci-demo-repo` in AWS CodeCommit (eu-west-1); exported ZIP (`ci-demo.zip`) submitted with this README
+- **Repository:** https://github.com/Funmibi-A/aws-devops-setup (built and run from the AWS CodeCommit repo `ci-demo-repo`, eu-west-1)
 
 ---
 
